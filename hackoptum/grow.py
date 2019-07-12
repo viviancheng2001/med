@@ -1,9 +1,10 @@
 # Basic Animation Framework
 
 from PIL import Image
-from tkinter import *
+from Tkinter import *
+
 from image_utils import *
-import math
+import math, mindwave, time, string
 
 
 ####################################
@@ -14,7 +15,7 @@ def init(data):
 
     data.image = PhotoImage(file='pott.gif'
                         )
-
+    data.headset = mindwave.Headset('/dev/ttyUSB0', 'DB00')
     data.im = PhotoImage(file = 'cann.gif')
     data.sky = PhotoImage(file='sky.gif')
 
@@ -58,12 +59,7 @@ def mousePressed(event, data):
 
 
 def medKeyPressed(event, data):
-    if event.keysym == 'Up' and data.fTop >=530:
-        data.fTop -=10
-        data.watering = 'watering...'
-    elif event.keysym == 'Down':
-        data.fTop +=10
-        data.watering = ''
+    data.fTop = 532 + ((3.1)*(data.headset.meditation))
 
 def medMousePressed(event,data):
     pass
@@ -78,7 +74,7 @@ def physMousePressed(event,data):
 
 def physRedrawAll(canvas,data):
     canvas.create_image(data.width/2,data.height/2, image = data.bac)
-    canvas.create_text(data.width/2, data.height/7, text = 'Welcome to Blossom!, font = 'Times 35 ')
+    canvas.create_text(data.width/2, data.height/7, text = 'Welcome to Blossom!', font = 'Times 35 ')
 
 def medRedrawAll(canvas, data):
 
@@ -94,7 +90,7 @@ def medRedrawAll(canvas, data):
 
     canvas.create_image(data.cLeft + (data.canWidth/2), data.cTop - (data.canHeight/2), image=data.im)
 
-    canvas.create_text(data.width/1.3, 60, text = 'Meditation Level: ' + data.med, font = 'Times 27')
+    canvas.create_text(data.width/1.3, 60, text = 'Meditation Level: ' + str(data.headset.meditation), font = 'Times 20')
     canvas.create_text(100,data.height/4.8, text = data.watering)
 
 def getMeditationLevel(data):
@@ -106,6 +102,7 @@ def getMeditationLevel(data):
 ####################################
 
 def run(width=300, height=300):
+    
     def redrawAllWrapper(canvas, data):
         canvas.delete(ALL)
 
@@ -130,6 +127,28 @@ def run(width=300, height=300):
     root = Tk()
     root.resizable(width=False, height=False) # prevents resizing window
     init(data)
+    
+        # setup headset
+##    data.headset = mindwave.Headset('/dev/ttyUSB0', 'DB00')
+    time.sleep(2)
+
+    data.headset.connect()
+    print "Connecting..."
+
+
+    totaltime = 0
+    totalmed = 0
+
+    while data.headset.status != 'connected':
+        time.sleep(0.5)
+        if data.headset.status == 'standby':
+            data.headset.connect()
+            print "Retrying connect..."
+
+    print "Connected."
+    time.sleep(.5)
+        
+    
     # create the root and the canvas
     canvas = Canvas(root, width=data.width, height=data.height)
     canvas.configure(bd=0, highlightthickness=0)
